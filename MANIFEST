@@ -2,3 +2,5 @@ Makefile.PL
 errno.pl
 MANIFEST
 t/errno.t
+Errno.pm
+README

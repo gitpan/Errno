@@ -3,8 +3,13 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
 	NAME	=> 'Errno',
 	PL_FILES => {},
-	clean => {FILES => 'Errno.pm'},
-	VERSION_FROM => 'errno.pl'
+	VERSION_FROM => 'errno.pl',
+	'clean' => { FILES => 'errno_pm' },
+	'dist'	=> {
+			COMPRESS => 'gzip -9f',
+			SUFFIX   => '.gz', 
+			DIST_DEFAULT => 'dummy_errno tardist',
+		   },
 );
 
 sub MY::libscan {
@@ -19,9 +24,18 @@ sub MY::post_initialize {
 }
 
 sub MY::processPL {
-    '
-Errno.pm : errno.pl
+    <<'ESQ';
+Errno.pm : errno.pl errno_pm
 	$(PERL) errno.pl > Errno.pm
 
-'
+errno_pm :
+	touch errno_pm
+
+dummy_errno :
+	echo 'packge Errno;' > Errno.pm
+	echo '$$VERSION = "$(VERSION)";' >>Errno.pm
+	echo "0;" >>Errno.pm
+	rm -f errno_pm
+
+ESQ
 }

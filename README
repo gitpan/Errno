@@ -1,0 +1,20 @@
+This distribution generates a Errno package which will define and
+optionally export all E* constants defined in your system <errno.h>
+file.
+
+The Errno.pm included in the distribution will be over-written by an
+auto-generated one when you run
+
+	perl Makefile.PL
+
+The only reason it is included is so that CPAN.pm can find the package.
+
+
+COPYRIGHT
+
+© 1997-8 Graham Barr. All rights reserved.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+Share and Enjoy!
