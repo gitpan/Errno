@@ -10,7 +10,7 @@ use Config;
 $Config{'myarchname'} eq "sun4os5-solaris" or
 	die "Errno architecture does not match executable architecture";
 
-$VERSION = "1.00";
+$VERSION = "1.01";
 @ISA = qw(Exporter);
 
 @EXPORT_OK = qw(
@@ -152,3 +152,30 @@ sub EINPROGRESS    	() {   150 }
 sub ESTALE         	() {   151 }
 
 1;
+__END__
+
+=head1 NAME
+
+Errno - System errno constants
+
+=head1 SYNOPSIS
+
+    use Errno qw(EINTR EIO);
+
+=head1 DESCRIPTION
+
+C<Errno> defined and conditionally exports all the error constants
+defined in your system C<errno.h> include file.
+
+=head1 AUTHOR
+
+Graham Barr <gbarr@ti.com>
+
+=head1 COPYRIGHT
+
+Copyright (c) 1997 Graham Barr. All rights reserved.
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=cut
+

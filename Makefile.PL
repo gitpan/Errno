@@ -3,8 +3,11 @@ use Config;
 use IO::File;
 use strict;
 
+my $VERSION = "1.01";
+
 my @incpath = (split(/\s+/, $Config{usrinc}), split(/\s+/ ,$Config{locincpth}));
 my %err = ();
+my %done = ();
 
 sub process_file {
     my($mm,$file) = @_;
@@ -19,6 +22,9 @@ sub process_file {
 	$path = $tmp;
 	last;
     }
+
+    return if exists $done{$path};
+    $done{$path} = 1;
 
     unless(defined $path) {
 	warn "Cannot find '$file'";
@@ -71,7 +77,7 @@ use Config;
 \$Config{'myarchname'} eq "$Config{'myarchname'}" or
 	die "Errno architecture does not match executable architecture";
 
-\$VERSION = "1.00";
+\$VERSION = "$VERSION";
 \@ISA = qw(Exporter);
 
 EDQ
@@ -89,7 +95,37 @@ EDQ
         $fp->printf("sub %-${len}s\t() { %5d }\n",$err,$err{$err});
     }
 
-    $fp->print("\n1;\n");
+    $fp->print(<<'ESQ');
+
+1;
+__END__
+
+=head1 NAME
+
+Errno - System errno constants
+
+=head1 SYNOPSIS
+
+    use Errno qw(EINTR EIO);
+
+=head1 DESCRIPTION
+
+C<Errno> defined and conditionally exports all the error constants
+defined in your system C<errno.h> include file.
+
+=head1 AUTHOR
+
+Graham Barr <gbarr@ti.com>
+
+=head1 COPYRIGHT
+
+Copyright (c) 1997 Graham Barr. All rights reserved.
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=cut
+
+ESQ
 
     $fp->close;
 }
@@ -109,7 +145,7 @@ sub MY::post_initialize
 
 WriteMakefile(
 	NAME	=> 'Errno',
-	VERSION	=> '1.00',
+	VERSION	=> $VERSION,
 	'dist'	=> {
 			COMPRESS => 'gzip -9f',
 			SUFFIX   => '.gz', 
