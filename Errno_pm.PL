@@ -5,19 +5,19 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = "1.06";
+$VERSION = "1.07";
 
 my %err = ();
 
 unlink "Errno.pm" if -f "Errno.pm";
-open OUT, ">Errno.pm" or die $!;
+open OUT, ">Errno.pm" or die "Cannot open Errno.pm: $!";
 select OUT;
 my $file;
 foreach $file (get_files()) {
     process_file($file);
 }
 write_errno_pm();
-unlink "errno.i" if -f "errno.i";
+unlink "errno.c" if -f "errno.c";
 
 sub process_file {
     my($file) = @_;
@@ -55,8 +55,8 @@ sub get_files {
 	    $file{'gnu_cc_include:[000000]errno.h'} = 1;
 	}
     } else {
-	open(CPPI,"> errno.i") or
-	    die "Cannot open errno.i";
+	open(CPPI,"> errno.c") or
+	    die "Cannot open errno.c";
 
 	print CPPI "#include <errno.h>\n";
 
@@ -64,8 +64,8 @@ sub get_files {
 
 	# invoke CPP and read the output
 
-	open(CPPO,"$Config{cppstdin} $Config{cppflags} $Config{cppminus}  <errno.i |") or
-	    die "Cannot exec $Config{cppstdin}";
+	open(CPPO,"$Config{cpp} $Config{cppflags} errno.c |") or
+	    die "Cannot exec $Config{cpp}";
 
 	while(<CPPO>) {
 	    $file{$1} = 1
@@ -81,8 +81,8 @@ sub write_errno_pm {
 
     # create the CPP input
 
-    open(CPPI,"> errno.i") or
-	die "Cannot open errno.i";
+    open(CPPI,"> errno.c") or
+	die "Cannot open errno.c";
 
     print CPPI "#include <errno.h>\n";
 
@@ -93,14 +93,14 @@ sub write_errno_pm {
     close(CPPI);
 
     # invoke CPP and read the output
-    if ($^O ne 'VMS') {
-    open(CPPO,"$Config{cppstdin} $Config{cppflags} $Config{cppminus}  <errno.i |") or
-	die "Cannot exec $Config{cppstdin}";
+    if ($^O eq 'VMS') {
+	my $cpp = "$Config{cppstdin} $Config{cppflags} $Config{cppminus}";
+	$cpp =~ s/sys\$input//i;
+	open(CPPO,"$cpp  errno.c |") or
+          die "Cannot exec $Config{cppstdin}";
     } else {
-      my $cpp = "$Config{cppstdin} $Config{cppflags} $Config{cppminus}";
-      $cpp =~ s/sys\$input//i;
-      open(CPPO,"$cpp  errno.i |") or
-        die "Cannot exec $Config{cppstdin}";
+	open(CPPO,"$Config{cpp} $Config{cppflags} errno.c |") or
+	    die "Cannot exec $Config{cpp}";
     }
 
     %err = ();
@@ -175,7 +175,7 @@ sub TIEHASH { bless [] }
 
 sub FETCH {
     my ($self, $errname) = @_;
-    my $proto = prototype($errname);
+    my $proto = prototype("Errno::$errname");
     if (defined($proto) && $proto eq "") {
 	no strict 'refs';
         return $! == &$errname;
@@ -195,7 +195,7 @@ sub STORE {
 sub NEXTKEY {
     my($k,$v);
     while(($k,$v) = each %Errno::) {
-	my $proto = prototype($k);
+	my $proto = prototype("Errno::$k");
 	last if (defined($proto) && $proto eq "");
 	
     }
@@ -206,8 +206,6 @@ sub FIRSTKEY {
     my $s = scalar keys %Errno::;
     goto &NEXTKEY;
 }
-
-*DELETE = *CLEAR = \&STORE;
 
 sub EXISTS {
     my ($self, $errname) = @_;
