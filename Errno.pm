@@ -1,3 +1,3 @@
 packge Errno;
-$VERSION = "1.04";
+$VERSION = "1.05";
 0;

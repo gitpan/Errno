@@ -5,7 +5,7 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = "1.04";
+$VERSION = "1.05";
 
 my @incpath = (split(/\s+/, $Config{usrinc}), split(/\s+/ ,$Config{locincpth}));
 my %err = ();
@@ -151,7 +151,7 @@ sub FETCH {
 
 sub STORE {
     require Carp;
-    Carp::confess "ERRNO hash is read only!";
+    Carp::confess("ERRNO hash is read only!");
 }
 
 *CLEAR = \&STORE;

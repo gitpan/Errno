@@ -4,3 +4,4 @@ MANIFEST
 t/errno.t
 Errno.pm
 README
+ChangeLog
