@@ -1,16 +1,30 @@
-use Errno qw(:POSIX);
+#!./perl
 
-print "1..3\n";
+BEGIN {
+    unless(grep /blib/, @INC) {
+	chdir 't' if -d 't';
+	@INC = '../lib' if -d '../lib';
+    }
+}
 
-$! = E2BIG;
+use Errno;
 
-print "not " unless $! == E2BIG;
+print "1..4\n";
+
+print "not " unless @Errno::EXPORT_OK;
 print "ok 1\n";
+die unless @Errno::EXPORT_OK;
 
-print "not " unless $!{E2BIG};
+$err = $Errno::EXPORT_OK[0];
+$num = &{"Errno::$err"};
+
+print "not " unless &{"Errno::$err"} == $num;
 print "ok 2\n";
 
-print "not " if $!{EBADF};
+$! = $num;
+print "not " unless $!{$err};
 print "ok 3\n";
 
-
+$! = 0;
+print "not " if $!{$err};
+print "ok 4\n";
