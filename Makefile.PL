@@ -1,41 +1,30 @@
 use ExtUtils::MakeMaker;
 
+@VMS = ($^O eq 'VMS') ? (MAN3PODS => ' ') : ();
+
 WriteMakefile(
-	NAME	=> 'Errno',
-	PL_FILES => {},
-	VERSION_FROM => 'errno.pl',
-	'clean' => { FILES => 'errno_pm' },
-	'dist'	=> {
-			COMPRESS => 'gzip -9f',
-			SUFFIX   => '.gz', 
-			DIST_DEFAULT => 'dummy_errno tardist',
-		   },
+    NAME	 => 'Errno',
+    VERSION_FROM => 'Errno_pm.PL',
+    PL_FILES	 => {'Errno_pm.PL'=>'Errno.pm'},
+    PM		 => {'Errno.pm' => '$(INST_LIBDIR)/Errno.pm'},
+    'clean'	 => {FILES => 'Errno.pm'},
+    'dist'	 => {
+	COMPRESS => 'gzip -9f',
+	SUFFIX   => '.gz', 
+	DIST_DEFAULT => 'd/Errno.pm tardist',
+    },
+    @VMS,
 );
 
-sub MY::libscan {
-    my($self,$path) = @_;
-    return '' if $path =~ /\.pl$/;
-}
+sub MY::postamble {
+q!
 
-sub MY::post_initialize {
-    my $self = shift;
-    $self->{PM}->{'Errno.pm'} = $self->catfile('$(INST_ARCHLIBDIR)','Errno.pm');
-    "";
-}
+d/Errno.pm : Makefile
+	echo '#This is a dummy file so CPAN will find a VERSION' > d/Errno.pm
+	echo 'package Errno;' >> d/Errno.pm
+	echo '$$VERSION = "$(VERSION)";' >>d/Errno.pm
+	echo '#This is to make sure require will return an error' >>d/Errno.pm
+	echo "0;" >>d/Errno.pm
 
-sub MY::processPL {
-    <<'ESQ';
-Errno.pm : errno.pl errno_pm
-	$(PERL) errno.pl > Errno.pm
-
-errno_pm :
-	touch errno_pm
-
-dummy_errno :
-	echo 'packge Errno;' > Errno.pm
-	echo '$$VERSION = "$(VERSION)";' >>Errno.pm
-	echo "0;" >>Errno.pm
-	rm -f errno_pm
-
-ESQ
+!
 }

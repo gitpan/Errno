@@ -1,7 +1,6 @@
 Makefile.PL
-errno.pl
+Errno_pm.PL
 MANIFEST
 t/errno.t
-Errno.pm
+d/Errno.pm
 README
-ChangeLog

@@ -5,46 +5,75 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = "1.05";
+$VERSION = "1.06";
 
-my @incpath = (split(/\s+/, $Config{usrinc}), split(/\s+/ ,$Config{locincpth}));
 my %err = ();
-my %done = ();
+
+unlink "Errno.pm" if -f "Errno.pm";
+open OUT, ">Errno.pm" or die $!;
+select OUT;
+my $file;
+foreach $file (get_files()) {
+    process_file($file);
+}
+write_errno_pm();
+unlink "errno.i" if -f "errno.i";
 
 sub process_file {
     my($file) = @_;
 
     return unless defined $file;
 
-    my $path = undef;
-    my $dir;
-    foreach $dir (@incpath) {
-	my $tmp = MM->catfile($dir,$file);
-	next unless -r $tmp;
-	$path = $tmp;
-	last;
-    }
-
-    return if exists $done{$path};
-    $done{$path} = 1;
-
-    unless(defined $path) {
-	warn "Cannot find '$file'";
-	return;
-    }
-
     local *FH;
-    open(FH,"< $path") or return;
+    if (($^O eq 'VMS') && ($Config{vms_cc_type} ne 'gnuc')) {
+	unless(open(FH," LIBRARY/EXTRACT=ERRNO/OUTPUT=SYS\$OUTPUT $file |")) {
+            warn "Cannot open '$file'";
+            return;
+	}     
+    } else {
+	unless(open(FH,"< $file")) {
+            warn "Cannot open '$file'";
+            return;
+	}
+    }
     while(<FH>) {
-	s#/\*.*(\*/|$)##;
-
-	process_file($1)
-		if /^#\s*include\s*[<"]([^>"]+)[>"]/;
-
 	$err{$1} = 1
 	    if /^#\s*define\s+(E\w+)\s+/;
    }
    close(FH);
+}
+
+sub get_files {
+    my %file = ();
+    # VMS keeps its include files in system libraries (well, except for Gcc)
+    if ($^O eq 'VMS') {
+	if ($Config{vms_cc_type} eq 'decc') {
+	    $file{'Sys$Library:DECC$RTLDEF.TLB'} = 1;
+	} elsif ($Config{vms_cc_type} eq 'vaxc') {
+	    $file{'Sys$Library:vaxcdef.tlb'} = 1;
+	} elsif ($Config{vms_cc_type} eq 'gcc') {
+	    $file{'gnu_cc_include:[000000]errno.h'} = 1;
+	}
+    } else {
+	open(CPPI,"> errno.i") or
+	    die "Cannot open errno.i";
+
+	print CPPI "#include <errno.h>\n";
+
+	close(CPPI);
+
+	# invoke CPP and read the output
+
+	open(CPPO,"$Config{cppstdin} $Config{cppflags} $Config{cppminus}  <errno.i |") or
+	    die "Cannot exec $Config{cppstdin}";
+
+	while(<CPPO>) {
+	    $file{$1} = 1
+		if /^#(?:line)?\s+\d+\s+"([^"]+)"/;
+	}
+	close(CPPO);
+    }
+    return keys %file;
 }
 
 sub write_errno_pm {
@@ -64,15 +93,21 @@ sub write_errno_pm {
     close(CPPI);
 
     # invoke CPP and read the output
-
+    if ($^O ne 'VMS') {
     open(CPPO,"$Config{cppstdin} $Config{cppflags} $Config{cppminus}  <errno.i |") or
 	die "Cannot exec $Config{cppstdin}";
+    } else {
+      my $cpp = "$Config{cppstdin} $Config{cppflags} $Config{cppminus}";
+      $cpp =~ s/sys\$input//i;
+      open(CPPO,"$cpp  errno.i |") or
+        die "Cannot exec $Config{cppstdin}";
+    }
 
     %err = ();
 
     while(<CPPO>) {
 	my($name,$expr);
-	next unless ($name, $expr) = /"(.*?)"\s*\[\[\s*(.*?)\s*\]\]/;
+	next unless ($name, $expr) = /"(.*?)"\s*\[\s*\[\s*(.*?)\s*\]\s*\]/;
 	next if $name eq $expr;
 	$err{$name} = eval $expr;
     }
@@ -227,9 +262,3 @@ under the same terms as Perl itself.
 ESQ
 
 }
-
-process_file("errno.h");
-
-write_errno_pm();
-
-END { unlink("errno.i"); }
