@@ -17,14 +17,13 @@ WriteMakefile(
 );
 
 sub MY::postamble {
-q!
-
-d/Errno.pm : Makefile
-	echo '#This is a dummy file so CPAN will find a VERSION' > d/Errno.pm
-	echo 'package Errno;' >> d/Errno.pm
-	echo '$$VERSION = "$(VERSION)";' >>d/Errno.pm
-	echo '#This is to make sure require will return an error' >>d/Errno.pm
-	echo "0;" >>d/Errno.pm
+    my $TARG = MM->catfile('d','Errno.pm');
+qq!$TARG : Makefile
+	echo '#This is a dummy file so CPAN will find a VERSION' > $TARG
+	echo 'package Errno;' >> $TARG
+	echo '\$\$VERSION = "\$(VERSION)";' >>$TARG
+	echo '#This is to make sure require will return an error' >>$TARG
+	echo '0;' >>$TARG
 
 !
 }

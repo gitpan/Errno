@@ -5,7 +5,7 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = "1.07";
+$VERSION = "1.08";
 
 my %err = ();
 
@@ -64,12 +64,18 @@ sub get_files {
 
 	# invoke CPP and read the output
 
-	open(CPPO,"$Config{cpp} $Config{cppflags} errno.c |") or
-	    die "Cannot exec $Config{cpp}";
+	open(CPPO,"$Config{cpprun} $Config{cppflags} errno.c |") or
+	    die "Cannot exec $Config{cpprun}";
 
+	my $pat;
+	if ($^O eq 'MSWin32' and $Config{cc} =~ /^bcc/i) {
+	    $pat = '^/\*\s+(.+)\s+\d+\s*:\s+\*/';
+	}
+	else {
+	    $pat = '^#(?:line)?\s+\d+\s+"([^"]+)"';
+	}
 	while(<CPPO>) {
-	    $file{$1} = 1
-		if /^#(?:line)?\s+\d+\s+"([^"]+)"/;
+	    $file{$1} = 1 if /$pat/o;
 	}
 	close(CPPO);
     }
@@ -99,8 +105,8 @@ sub write_errno_pm {
 	open(CPPO,"$cpp  errno.c |") or
           die "Cannot exec $Config{cppstdin}";
     } else {
-	open(CPPO,"$Config{cpp} $Config{cppflags} errno.c |") or
-	    die "Cannot exec $Config{cpp}";
+	open(CPPO,"$Config{cpprun} $Config{cppflags} errno.c |") or
+	    die "Cannot exec $Config{cpprun}";
     }
 
     %err = ();
