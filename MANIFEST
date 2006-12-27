@@ -1,7 +1,9 @@
-Makefile.PL
-Errno_pm.PL
-MANIFEST
-t/errno.t
-README
 ChangeLog
 d/Errno.pm
+Errno_pm.PL
+Makefile.PL
+MANIFEST
+README
+SIGNATURE
+t/errno.t
+META.yml                                 Module meta-data (added by MakeMaker)

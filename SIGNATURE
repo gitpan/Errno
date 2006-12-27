@@ -1,0 +1,31 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.55.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It will check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+SHA1 6cc377d9d68749cce89ddcbef0ae951c4ec5a37b ChangeLog
+SHA1 e067d82d9371430fc76f4c8fe1dcfc0d5351c253 Errno_pm.PL
+SHA1 ac8589f492bc05f5d41ad97aa57186a3b7d0df63 MANIFEST
+SHA1 f230047d1bccad4d53154ea7b3c321b060883c63 META.yml
+SHA1 9d2da0a07f34b680c69b8e3066653ef3f1e88a09 Makefile.PL
+SHA1 62057c9a11d24d801ca7b5b4e84d5d9d1b7d7dd7 README
+SHA1 1e6c6886ebb9f67cddc734553a7f57ebd0eb7d18 d/Errno.pm
+SHA1 1270ac025da13a921f1bd8c32ad9e69475eedbb3 t/errno.t
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFFkoc8R0BL4gbYw3QRAuBMAKCS9pPqYjNHIx0o0p6SK3Gwu4hukACePoMn
+B6Xk/do/pCXhNQmii1bPTHM=
+=IFye
+-----END PGP SIGNATURE-----

@@ -1,6 +1,6 @@
 use ExtUtils::MakeMaker;
 
-@VMS = ($^O eq 'VMS') ? (MAN3PODS => ' ') : ();
+@MAN3PODS = ($^O eq 'VMS' or grep { /PERL_CORE=1/ } @ARGV) ? (MAN3PODS => {}) : ();
 
 WriteMakefile(
     NAME	 => 'Errno',
@@ -13,7 +13,7 @@ WriteMakefile(
 	SUFFIX   => '.gz', 
 	DIST_DEFAULT => 'd/Errno.pm tardist',
     },
-    @VMS,
+    @MAN3PODS,
 );
 
 sub MY::postamble {
